@@ -12,3 +12,4 @@ httpx==0.26.0
 anthropic==0.18.1
 redis==5.0.1
 # triggered
+# build trigger
