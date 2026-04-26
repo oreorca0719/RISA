@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "RISA"
 
     # DB
-    DATABASE_URL: str = "postgresql+asyncpg://risa:risa@localhost:5432/risa"
+    DATABASE_URL: str = "postgresql+asyncpg://risaadmin:risa2026!Dev@localhost:5432/risadb"
 
     # Auth
     SECRET_KEY: str = "change-me-in-production"
