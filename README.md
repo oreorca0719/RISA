@@ -8,7 +8,6 @@
 | Backend | FastAPI (Python 3.12) |
 | DB | PostgreSQL 16 |
 | Cache | Redis 7 |
-| Infra | AWS S3, CloudFront, ECS Fargate, ECR, RDS |
 | CI/CD | GitHub Actions |
 
 ---
@@ -39,9 +38,7 @@ aws s3 website s3://risa-frontend-dev \
   --error-document index.html
 ```
 
-### 2. CloudFront 배포 생성
 
-AWS 콘솔 → CloudFront → 배포 생성
 - Origin: 위에서 만든 S3 버킷
 - Default root object: `index.html`
 - Custom error response: 404 → `/index.html` (Vue Router 지원)
@@ -78,7 +75,6 @@ aws ecs create-cluster --cluster-name risa-dev --region ap-northeast-1
 | `AWS_SECRET_ACCESS_KEY` | `...` | IAM 시크릿 |
 | `AWS_REGION` | `ap-northeast-2` | 서울 리전 |
 | `S3_BUCKET_NAME` | `risa-frontend-dev` | 프론트 배포 버킷 |
-| `CLOUDFRONT_DISTRIBUTION_ID` | `E1ABC...` | CloudFront ID |
 | `ECR_REPOSITORY` | `risa-backend` | ECR 리포지토리명 |
 | `ECS_CLUSTER` | `risa-dev` | ECS 클러스터명 |
 | `ECS_SERVICE` | `risa-backend-svc` | ECS 서비스명 |
@@ -94,7 +90,6 @@ PR 생성
   └── backend/ 변경  → 빌드 + ECR 푸시만 (ECS 배포 X)
 
 main 머지
-  └── frontend/ 변경 → 빌드 → S3 업로드 → CloudFront 캐시 무효화
   └── backend/ 변경  → Docker 빌드 → ECR 푸시 → ECS 재배포 → 안정화 대기
 ```
 
