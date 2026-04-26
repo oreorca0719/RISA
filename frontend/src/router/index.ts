@@ -1,18 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      redirect: '/login'
     },
-    // TODO: 진단 페이지
-    // { path: '/diagnosis', name: 'diagnosis', component: () => import('@/views/DiagnosisView.vue') },
-    // TODO: 결과 페이지
-    // { path: '/result/:id', name: 'result', component: () => import('@/views/ResultView.vue') },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue'),
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/RegisterView.vue'),
+    },
+    {
+      path: '/student',
+      name: 'student-home',
+      component: () => import('@/views/StudentHomeView.vue'),
+    },
+    {
+      path: '/student/diagnosis',
+      name: 'diagnosis',
+      component: () => import('@/views/DiagnosisView.vue'),
+    },
+    {
+      path: '/student/result',
+      name: 'result',
+      component: () => import('@/views/ResultView.vue'),
+    },
   ],
 })
 

@@ -1,17 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  background: #0a0a0f;
-  color: #fff;
+:root {
+  --mint: #4ECDC4;
+  --mint-light: #E8FAF9;
+  --mint-dark: #38b2ab;
+  --yellow: #FFE66D;
+  --yellow-dark: #f5d800;
+  --coral: #FF6B6B;
+  --navy: #2C3E50;
+  --gray: #8492a6;
+  --gray-light: #f5f7fa;
+  --white: #ffffff;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 4px 20px rgba(78, 205, 196, 0.15);
+  --shadow-hover: 0 8px 30px rgba(78, 205, 196, 0.25);
 }
 
-#app {
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--gray-light);
+  color: var(--navy);
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-/* triggered */
+
+#app { min-height: 100vh; }
+button { cursor: pointer; font-family: 'Nunito', sans-serif; }
+input { font-family: 'Nunito', sans-serif; }
