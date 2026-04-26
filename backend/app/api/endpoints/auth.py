@@ -37,3 +37,18 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
 async def get_me():
     # TODO: JWT 미들웨어에서 현재 사용자 추출
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="준비 중")
+
+
+@router.patch("/users/{user_id}/name")
+async def update_name(user_id: int, name: str, db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import select, update
+    from app.models.user import User
+    await db.execute(
+        update(User).where(User.id == user_id).values(name=name)
+    )
+    await db.commit()
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+    return UserResponse.model_validate(user)
