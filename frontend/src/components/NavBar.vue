@@ -10,14 +10,22 @@
         <RouterLink to="/student/diagnosis" class="nav-link">진단하기</RouterLink>
         <RouterLink to="/student/result" class="nav-link">내 결과</RouterLink>
       </div>
-      <button class="logout-btn" @click="$emit('logout')">로그아웃</button>
+      <button class="logout-btn" @click="handleLogout">로그아웃</button>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-defineEmits(['logout'])
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+function handleLogout() {
+  auth.logout()
+  router.push('/login')
+}
 </script>
 
 <style scoped>
