@@ -11,10 +11,14 @@ class Settings(BaseSettings):
 
     # Auth
     SECRET_KEY: str = "change-me-in-production"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
-    # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:5173"]
+    # CORS — 환경변수에서 콤마 구분 문자열로 받아서 파싱
+    ALLOWED_ORIGINS_STR: str = "http://localhost:5173"
+
+    @property
+    def ALLOWED_ORIGINS(self) -> List[str]:
+        return [o.strip() for o in self.ALLOWED_ORIGINS_STR.split(",")]
 
     # External APIs
     ANTHROPIC_API_KEY: str = ""
