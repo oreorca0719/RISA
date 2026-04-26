@@ -31,7 +31,7 @@ docker compose up
 ### 1. S3 버킷 생성 (프론트엔드)
 
 ```bash
-aws s3 mb s3://risa-frontend-dev --region ap-northeast-2
+aws s3 mb s3://risa-frontend-dev --region ap-northeast-1
 
 # 정적 웹사이트 호스팅 활성화
 aws s3 website s3://risa-frontend-dev \
@@ -53,14 +53,14 @@ AWS 콘솔 → CloudFront → 배포 생성
 ```bash
 aws ecr create-repository \
   --repository-name risa-backend \
-  --region ap-northeast-2
+  --region ap-northeast-1
 ```
 
 ### 4. ECS 클러스터 + 서비스 생성
 
 ```bash
 # 클러스터 생성
-aws ecs create-cluster --cluster-name risa-dev
+aws ecs create-cluster --cluster-name risa-dev --region ap-northeast-1
 
 # Task Definition은 AWS 콘솔에서 생성 권장
 # (ECR 이미지 URI, 환경변수, 포트 매핑 설정)
