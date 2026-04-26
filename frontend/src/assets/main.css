@@ -1,0 +1,16 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #0a0a0f;
+  color: #fff;
+}
+
+#app {
+  min-height: 100vh;
+}

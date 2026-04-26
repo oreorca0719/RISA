@@ -1,0 +1,28 @@
+from pydantic_settings import BaseSettings
+from typing import List
+
+
+class Settings(BaseSettings):
+    ENV: str = "dev"
+    APP_NAME: str = "RISA"
+
+    # DB
+    DATABASE_URL: str = "postgresql+asyncpg://risa:risa@localhost:5432/risa"
+
+    # Auth
+    SECRET_KEY: str = "change-me-in-production"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
+
+    # CORS
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:5173"]
+
+    # External APIs
+    ANTHROPIC_API_KEY: str = ""
+    CLOVA_API_KEY: str = ""
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+
+settings = Settings()

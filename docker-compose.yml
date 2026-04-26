@@ -1,0 +1,49 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=dev
+      - DATABASE_URL=postgresql+asyncpg://risa:risa@postgres:5432/risa
+      - SECRET_KEY=local-dev-secret-key
+      - ALLOWED_ORIGINS=http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app  # 핫 리로드용
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: risa
+      POSTGRES_PASSWORD: risa
+      POSTGRES_DB: risa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U risa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
