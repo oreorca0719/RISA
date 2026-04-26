@@ -34,7 +34,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <button class="logout-btn" @click="$emit('logout')">
+        <button class="logout-btn" @click="handleLogout()">
           <span>🚪</span> 로그아웃
         </button>
       </div>
@@ -59,8 +59,16 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-defineEmits(['logout'])
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+function handleLogout() {
+  auth.logout()
+  router.push('/login')
+}
 </script>
 
 <style scoped>
