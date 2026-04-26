@@ -9,9 +9,10 @@
           <button
             v-for="tab in tabs" :key="tab.value"
             class="tab" :class="{ active: activeTab === tab.value }"
-            @click="activeTab = tab.value"
+            @click="activeTab = tab.value; loadUsers()"
           >
             {{ tab.icon }} {{ tab.label }}
+            <span class="tab-count">{{ counts[tab.value] ?? 0 }}</span>
           </button>
         </div>
         <div class="search-bar">
@@ -24,22 +25,33 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>이름</th>
+              <th>ID</th>
               <th>아이디</th>
+              <th>이름</th>
               <th v-if="activeTab === 'student'">학년</th>
-              <th v-if="activeTab === 'teacher'">소속</th>
-              <th>가입일</th>
               <th>상태</th>
-              <th>관리</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="coming-soon-row">
-              <td colspan="7">
-                <div class="empty-state">
-                  <span>🔧</span>
-                  <span>사용자 데이터 API 연동 준비 중입니다</span>
-                </div>
+            <tr v-if="loading">
+              <td colspan="5">
+                <div class="empty-state"><span>⏳</span><span>불러오는 중...</span></div>
+              </td>
+            </tr>
+            <tr v-else-if="filteredUsers.length === 0">
+              <td colspan="5">
+                <div class="empty-state"><span>👤</span><span>사용자가 없습니다</span></div>
+              </td>
+            </tr>
+            <tr v-for="user in filteredUsers" :key="user.id" class="data-row">
+              <td class="td-id">{{ user.id }}</td>
+              <td class="td-username">{{ user.username }}</td>
+              <td class="td-name">{{ user.name }}</td>
+              <td v-if="activeTab === 'student'" class="td-grade">{{ gradeLabel(user.grade) }}</td>
+              <td>
+                <span class="status-badge" :class="user.is_active ? 'active' : 'inactive'">
+                  {{ user.is_active ? '활성' : '비활성' }}
+                </span>
               </td>
             </tr>
           </tbody>
@@ -48,28 +60,78 @@
 
       <!-- 페이지네이션 -->
       <div class="pagination">
-        <button class="page-btn" disabled>← 이전</button>
-        <span class="page-info">1 / 1</span>
-        <button class="page-btn" disabled>다음 →</button>
+        <span class="page-info">전체 {{ filteredUsers.length }}명</span>
       </div>
     </div>
   </AdminLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 
 const router = useRouter()
-const search = ref('')
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 const activeTab = ref('student')
+const search = ref('')
+const users = ref<any[]>([])
+const counts = ref<Record<string, number>>({})
+const loading = ref(false)
 
 const tabs = [
   { value: 'student', label: '학생', icon: '👨‍🎓' },
   { value: 'parent', label: '학부모', icon: '👨‍👩‍👧' },
   { value: 'teacher', label: '교사', icon: '👩‍🏫' },
 ]
+
+const gradeMap: Record<string, string> = {
+  elem1: '초등 1학년', elem2: '초등 2학년', elem3: '초등 3학년',
+  elem4: '초등 4학년', elem5: '초등 5학년', elem6: '초등 6학년',
+  mid1: '중등 1학년',
+}
+
+function gradeLabel(grade: string | null) {
+  return grade ? gradeMap[grade] ?? grade : '-'
+}
+
+const filteredUsers = computed(() => {
+  if (!search.value) return users.value
+  const q = search.value.toLowerCase()
+  return users.value.filter(u =>
+    u.username.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)
+  )
+})
+
+async function loadUsers() {
+  loading.value = true
+  try {
+    const res = await axios.get(`${API}/api/admin/users`, {
+      params: { role: activeTab.value }
+    })
+    users.value = res.data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadCounts() {
+  try {
+    const res = await axios.get(`${API}/api/admin/users/count`)
+    counts.value = res.data
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+onMounted(() => {
+  loadUsers()
+  loadCounts()
+})
 
 function handleLogout() { router.push('/login') }
 </script>
@@ -86,9 +148,14 @@ function handleLogout() { router.push('/login') }
   background: none; border: 1px solid #2a2d3e; color: #666;
   padding: 0.5rem 1.2rem; border-radius: 8px;
   font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
 }
 .tab.active { background: rgba(78,205,196,0.15); border-color: #4ECDC4; color: #4ECDC4; }
 .tab:hover:not(.active) { border-color: #444; color: #aaa; }
+.tab-count {
+  background: rgba(255,255,255,0.1); border-radius: 99px;
+  padding: 0.1rem 0.5rem; font-size: 0.75rem;
+}
 
 .search-bar input {
   background: #252836; border: 1px solid #2a2d3e; color: #fff;
@@ -109,22 +176,27 @@ function handleLogout() { router.push('/login') }
   text-transform: uppercase; letter-spacing: 0.05em;
   border-bottom: 1px solid #2a2d3e;
 }
-.data-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #1e2130; }
+.data-row td { padding: 0.9rem 1.5rem; border-bottom: 1px solid #1e2130; color: #aaa; font-size: 0.9rem; }
+.data-row:hover td { background: #1e2130; }
+.data-row:last-child td { border-bottom: none; }
+.td-id { color: #555; font-size: 0.8rem; }
+.td-username { color: #4ECDC4; font-weight: 700; }
+.td-name { color: #fff; font-weight: 600; }
+.td-grade { color: #888; font-size: 0.85rem; }
 
-.coming-soon-row td { padding: 0; }
+.status-badge {
+  font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.7rem; border-radius: 99px;
+}
+.active { background: rgba(78,205,196,0.15); color: #4ECDC4; }
+.inactive { background: rgba(255,107,107,0.15); color: #FF6B6B; }
+
 .empty-state {
   display: flex; align-items: center; gap: 0.7rem; justify-content: center;
   padding: 3rem; color: #555; font-size: 0.9rem;
 }
 
 .pagination {
-  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  display: flex; align-items: center; justify-content: center;
 }
-.page-btn {
-  background: #1a1d27; border: 1px solid #2a2d3e; color: #666;
-  padding: 0.5rem 1.2rem; border-radius: 8px;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer;
-}
-.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-info { color: #666; font-size: 0.85rem; font-weight: 700; }
+.page-info { color: #555; font-size: 0.85rem; font-weight: 700; }
 </style>
