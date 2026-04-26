@@ -30,6 +30,10 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserNameUpdate(BaseModel):
+    name: str
+
+
 class UserResponse(BaseModel):
     id: int
     username: str

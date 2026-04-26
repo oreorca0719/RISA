@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import create_access_token
-from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
+from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse, UserNameUpdate
 from app.services.user_service import get_user_by_username, create_user, authenticate_user
 
 router = APIRouter()
@@ -12,10 +12,7 @@ router = APIRouter()
 async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
     existing = await get_user_by_username(db, data.username)
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="이미 사용 중인 아이디입니다."
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 사용 중인 아이디입니다.")
     user = await create_user(db, data)
     return user
 
@@ -33,22 +30,19 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_me():
-    # TODO: JWT 미들웨어에서 현재 사용자 추출
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="준비 중")
-
-
-@router.patch("/users/{user_id}/name")
-async def update_name(user_id: int, name: str, db: AsyncSession = Depends(get_db)):
+@router.patch("/users/{user_id}/name", response_model=UserResponse)
+async def update_name(user_id: int, body: UserNameUpdate, db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select, update
     from app.models.user import User
-    await db.execute(
-        update(User).where(User.id == user_id).values(name=name)
-    )
+    await db.execute(update(User).where(User.id == user_id).values(name=body.name))
     await db.commit()
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
     return UserResponse.model_validate(user)
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me():
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="준비 중")
