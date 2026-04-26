@@ -14,7 +14,7 @@
         </div>
         <div class="field">
           <label>아이디</label>
-          <input v-model="form.username" type="text" placeholder="아이디를 입력하세요" required />
+          <input v-model="form.username" type="text" placeholder="아이디를 입력하세요 (4자 이상)" required />
         </div>
         <div class="field">
           <label>학년</label>
@@ -25,7 +25,7 @@
         </div>
         <div class="field">
           <label>비밀번호</label>
-          <input v-model="form.password" type="password" placeholder="비밀번호를 입력하세요" required />
+          <input v-model="form.password" type="password" placeholder="비밀번호를 입력하세요 (6자 이상)" required />
         </div>
         <div class="field">
           <label>비밀번호 확인</label>
@@ -33,6 +33,7 @@
         </div>
 
         <div v-if="error" class="error-msg">{{ error }}</div>
+        <div v-if="success" class="success-msg">{{ success }}</div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
           {{ loading ? '가입 중...' : '회원가입 하기 🎉' }}
@@ -51,10 +52,13 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 const loading = ref(false)
 const error = ref('')
+const success = ref('')
 
 const form = ref({
   name: '', username: '', grade: '', password: '', passwordConfirm: ''
@@ -74,13 +78,19 @@ async function handleRegister() {
   if (form.value.password !== form.value.passwordConfirm) {
     error.value = '비밀번호가 일치하지 않아요!'; return
   }
-  loading.value = true; error.value = ''
+  loading.value = true; error.value = ''; success.value = ''
   try {
-    await new Promise(r => setTimeout(r, 800))
-    // TODO: 실제 API 연동
-    router.push('/login')
-  } catch {
-    error.value = '회원가입 중 오류가 발생했어요. 다시 시도해주세요.'
+    await auth.register({
+      username: form.value.username,
+      password: form.value.password,
+      name: form.value.name,
+      role: 'student',
+      grade: form.value.grade || undefined,
+    })
+    success.value = '가입 완료! 로그인 페이지로 이동합니다.'
+    setTimeout(() => router.push('/login'), 1500)
+  } catch (e: any) {
+    error.value = e.response?.data?.detail || '회원가입 중 오류가 발생했어요. 다시 시도해주세요.'
   } finally {
     loading.value = false
   }
@@ -108,7 +118,6 @@ async function handleRegister() {
 .logo { font-size: 1.8rem; font-weight: 900; color: var(--mint-dark); margin-bottom: 1rem; }
 h1 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin-bottom: 0.5rem; }
 p { color: var(--gray); font-size: 0.95rem; }
-
 .form { display: flex; flex-direction: column; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 label { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
@@ -123,25 +132,20 @@ input, select {
   background: white;
 }
 input:focus, select:focus { border-color: var(--mint); }
-
 .error-msg {
-  background: #fff0f0;
-  color: var(--coral);
-  padding: 0.7rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: #fff0f0; color: var(--coral);
+  padding: 0.7rem 1rem; border-radius: var(--radius-sm);
+  font-size: 0.9rem; font-weight: 600;
+}
+.success-msg {
+  background: #f0fff9; color: var(--mint-dark);
+  padding: 0.7rem 1rem; border-radius: var(--radius-sm);
+  font-size: 0.9rem; font-weight: 600;
 }
 .submit-btn {
-  background: var(--yellow);
-  color: var(--navy);
-  border: none;
-  padding: 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  font-weight: 800;
-  transition: all 0.2s;
-  margin-top: 0.5rem;
+  background: var(--yellow); color: var(--navy); border: none;
+  padding: 1rem; border-radius: var(--radius-sm);
+  font-size: 1rem; font-weight: 800; transition: all 0.2s; margin-top: 0.5rem;
 }
 .submit-btn:hover:not(:disabled) {
   background: var(--yellow-dark);

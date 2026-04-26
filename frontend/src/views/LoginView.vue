@@ -40,8 +40,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 const form = ref({ username: '', password: '' })
 const loading = ref(false)
 const error = ref('')
@@ -50,11 +52,16 @@ async function handleLogin() {
   loading.value = true
   error.value = ''
   try {
-    // TODO: 실제 API 연동
-    await new Promise(r => setTimeout(r, 800))
-    router.push('/student')
-  } catch {
-    error.value = '아이디 또는 비밀번호를 확인해주세요.'
+    const user = await auth.login(form.value.username, form.value.password)
+    if (user.role === 'admin') {
+      router.push('/admin')
+    } else if (user.role === 'student') {
+      router.push('/student')
+    } else {
+      router.push('/student')
+    }
+  } catch (e: any) {
+    error.value = e.response?.data?.detail || '아이디 또는 비밀번호를 확인해주세요.'
   } finally {
     loading.value = false
   }
@@ -82,15 +89,9 @@ async function handleLogin() {
   z-index: 1;
 }
 .card-header { text-align: center; margin-bottom: 2rem; }
-.logo {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--mint-dark);
-  margin-bottom: 1rem;
-}
+.logo { font-size: 1.8rem; font-weight: 900; color: var(--mint-dark); margin-bottom: 1rem; }
 h1 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin-bottom: 0.5rem; }
 p { color: var(--gray); font-size: 0.95rem; }
-
 .form { display: flex; flex-direction: column; gap: 1.2rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 label { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
@@ -103,7 +104,6 @@ input {
   outline: none;
 }
 input:focus { border-color: var(--mint); }
-
 .error-msg {
   background: #fff0f0;
   color: var(--coral);
@@ -112,7 +112,6 @@ input:focus { border-color: var(--mint); }
   font-size: 0.9rem;
   font-weight: 600;
 }
-
 .submit-btn {
   background: var(--mint);
   color: var(--white);
@@ -130,33 +129,17 @@ input:focus { border-color: var(--mint); }
   box-shadow: var(--shadow-hover);
 }
 .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
 .footer {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  color: var(--gray);
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
+  text-align: center; margin-top: 1.5rem;
+  font-size: 0.9rem; color: var(--gray);
+  display: flex; gap: 0.5rem; justify-content: center;
 }
-.footer a {
-  color: var(--mint-dark);
-  font-weight: 700;
-  text-decoration: none;
-}
+.footer a { color: var(--mint-dark); font-weight: 700; text-decoration: none; }
 .footer a:hover { text-decoration: underline; }
-
-.deco {
-  position: absolute;
-  font-size: 3rem;
-  opacity: 0.15;
-  animation: float 4s ease-in-out infinite;
-}
+.deco { position: absolute; font-size: 3rem; opacity: 0.15; animation: float 4s ease-in-out infinite; }
 .deco-1 { top: 10%; left: 8%; animation-delay: 0s; }
 .deco-2 { bottom: 15%; right: 8%; animation-delay: 1.5s; }
 .deco-3 { top: 60%; left: 5%; animation-delay: 0.8s; font-size: 2rem; }
-
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }

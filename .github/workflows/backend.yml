@@ -42,15 +42,25 @@ jobs:
                      $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # PR은 빌드·푸시까지, main 머지 시에만 ECS 배포
+      - name: Get latest Task Definition revision
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: get-td
+        run: |
+          REVISION=$(aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_TASK_FAMILY }} \
+            --query "taskDefinition.revision" \
+            --output text \
+            --region ${{ secrets.AWS_REGION }})
+          echo "revision=$REVISION" >> $GITHUB_OUTPUT
+
       - name: Deploy to ECS
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           aws ecs update-service \
             --cluster ${{ secrets.ECS_CLUSTER }} \
             --service ${{ secrets.ECS_SERVICE }} \
+            --task-definition ${{ secrets.ECS_TASK_FAMILY }}:${{ steps.get-td.outputs.revision }} \
             --force-new-deployment \
             --region ${{ secrets.AWS_REGION }}
 
