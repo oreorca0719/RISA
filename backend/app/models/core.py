@@ -79,7 +79,7 @@ class UserRelation(Base):
     __table_args__ = (UniqueConstraint('parent_id', 'student_id', name='uq_user_relations'),)
 
 
-class Text(Base):
+class TextContent(Base):
     __tablename__ = "texts"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
