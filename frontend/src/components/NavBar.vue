@@ -3,7 +3,7 @@
     <div class="navbar-inner">
       <RouterLink to="/student" class="logo">
         <span class="logo-icon">📚</span>
-        <span class="logo-text">RISA</span>
+        <span class="logo-text">STRIPE</span>
       </RouterLink>
       <div class="nav-links">
         <RouterLink to="/student" class="nav-link">홈</RouterLink>
